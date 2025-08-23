@@ -1,10 +1,21 @@
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Robert {
+    private static final String FILE_PATH = "./data/duke.txt";
+
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-        ArrayList<Task> tasks = new ArrayList<>();
+        Storage storage = new Storage(FILE_PATH);
+        ArrayList<Task> tasks;
+
+        try {
+            tasks = storage.load();
+        } catch (IOException e) {
+            System.out.println("Error loading tasks. Starting with an empty task list.");
+            tasks = new ArrayList<>();
+        }
 
         System.out.println("____________________________________________________________");
         System.out.println(" Wassup chat! I'm Robert");
@@ -37,6 +48,7 @@ public class Robert {
                         t.markAsDone();
                         System.out.println(" Nice! I've marked this task as done:");
                         System.out.println("   " + t);
+                        storage.save(tasks);
                     }
                     System.out.println("____________________________________________________________");
                 } else if (input.startsWith("unmark ")) {
@@ -50,6 +62,7 @@ public class Robert {
                         t.markAsNotDone();
                         System.out.println(" OK, I've marked this task as not done yet:");
                         System.out.println("   " + t);
+                        storage.save(tasks);
                     }
                     System.out.println("____________________________________________________________");
                 } else if (input.startsWith("todo ")) {
@@ -61,6 +74,7 @@ public class Robert {
                         System.out.println(" Got it. I've added this task:");
                         System.out.println("   " + tasks.get(tasks.size() - 1));
                         System.out.println(" Now you have " + tasks.size() + " task(s) in the list.");
+                        storage.save(tasks);
                     }
                     System.out.println("____________________________________________________________");
                 } else if (input.startsWith("deadline ")) {
@@ -72,6 +86,7 @@ public class Robert {
                         System.out.println(" Got it. I've added this task:");
                         System.out.println("   " + tasks.get(tasks.size() - 1));
                         System.out.println(" Now you have " + tasks.size() + " task(s) in the list.");
+                        storage.save(tasks);
                     }
                     System.out.println("____________________________________________________________");
                 } else if (input.startsWith("event ")) {
@@ -87,6 +102,7 @@ public class Robert {
                             System.out.println(" Got it. I've added this task:");
                             System.out.println("   " + tasks.get(tasks.size() - 1));
                             System.out.println(" Now you have " + tasks.size() + " task(s) in the list.");
+                            storage.save(tasks);
                         }
                     }
                     System.out.println("____________________________________________________________");
@@ -101,12 +117,13 @@ public class Robert {
                         System.out.println(" Noted. I've removed this task:");
                         System.out.println("   " + removedTask);
                         System.out.println(" Now you have " + tasks.size() + " task(s) in the list.");
+                        storage.save(tasks);
                     }
                     System.out.println("____________________________________________________________");
                 } else {
                     throw new RobertException("Only 'list', 'mark <num>', 'unmark <num>', 'todo <desc>', 'deadline <desc> /by <time>', 'event <desc> /from <start> /to <end>', 'delete <num>', and 'bye' commands are supported.");
                 }
-            } catch (RobertException e) {
+            } catch (RobertException | IOException e) {
                 System.out.println(" " + e.getMessage());
                 System.out.println("____________________________________________________________");
             }
