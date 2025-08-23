@@ -1,10 +1,10 @@
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Robert {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-        Task[] tasks = new Task[100];
-        int count = 0;
+        ArrayList<Task> tasks = new ArrayList<>();
 
         System.out.println("____________________________________________________________");
         System.out.println(" Wassup chat! I'm Robert");
@@ -22,18 +22,18 @@ public class Robert {
                     break;
                 } else if (input.equals("list")) {
                     System.out.println(" Here are the tasks in your list:");
-                    for (int i = 0; i < count; i++) {
-                        System.out.println(" " + (i + 1) + ". " + tasks[i]);
+                    for (int i = 0; i < tasks.size(); i++) {
+                        System.out.println(" " + (i + 1) + ". " + tasks.get(i));
                     }
                     System.out.println("____________________________________________________________");
                 } else if (input.startsWith("mark ")) {
                     Integer idx = parseIndex(input);
                     if (idx == null) {
                         throw new RobertException("Please provide a valid task number to mark, e.g., 'mark 2'.");
-                    } else if (idx < 1 || idx > count) {
-                        throw new RobertException("Task number out of range. You have " + count + " task(s).");
+                    } else if (idx < 1 || idx > tasks.size()) {
+                        throw new RobertException("Task number out of range. You have " + tasks.size() + " task(s).");
                     } else {
-                        Task t = tasks[idx - 1];
+                        Task t = tasks.get(idx - 1);
                         t.markAsDone();
                         System.out.println(" Nice! I've marked this task as done:");
                         System.out.println("   " + t);
@@ -43,10 +43,10 @@ public class Robert {
                     Integer idx = parseIndex(input);
                     if (idx == null) {
                         throw new RobertException("Please provide a valid task number to unmark, e.g., 'unmark 2'.");
-                    } else if (idx < 1 || idx > count) {
-                        throw new RobertException("Task number out of range. You have " + count + " task(s).");
+                    } else if (idx < 1 || idx > tasks.size()) {
+                        throw new RobertException("Task number out of range. You have " + tasks.size() + " task(s).");
                     } else {
-                        Task t = tasks[idx - 1];
+                        Task t = tasks.get(idx - 1);
                         t.markAsNotDone();
                         System.out.println(" OK, I've marked this task as not done yet:");
                         System.out.println("   " + t);
@@ -57,10 +57,10 @@ public class Robert {
                     if (description.isEmpty()) {
                         throw new RobertException("The description of a todo cannot be empty.");
                     } else {
-                        tasks[count++] = new Todo(description);
+                        tasks.add(new Todo(description));
                         System.out.println(" Got it. I've added this task:");
-                        System.out.println("   " + tasks[count - 1]);
-                        System.out.println(" Now you have " + count + " task(s) in the list.");
+                        System.out.println("   " + tasks.get(tasks.size() - 1));
+                        System.out.println(" Now you have " + tasks.size() + " task(s) in the list.");
                     }
                     System.out.println("____________________________________________________________");
                 } else if (input.startsWith("deadline ")) {
@@ -68,10 +68,10 @@ public class Robert {
                     if (parts.length < 2 || parts[0].trim().isEmpty() || parts[1].trim().isEmpty()) {
                         throw new RobertException("Please provide a valid description and deadline, e.g., 'deadline return book /by Sunday'.");
                     } else {
-                        tasks[count++] = new Deadline(parts[0].trim(), parts[1].trim());
+                        tasks.add(new Deadline(parts[0].trim(), parts[1].trim()));
                         System.out.println(" Got it. I've added this task:");
-                        System.out.println("   " + tasks[count - 1]);
-                        System.out.println(" Now you have " + count + " task(s) in the list.");
+                        System.out.println("   " + tasks.get(tasks.size() - 1));
+                        System.out.println(" Now you have " + tasks.size() + " task(s) in the list.");
                     }
                     System.out.println("____________________________________________________________");
                 } else if (input.startsWith("event ")) {
@@ -83,15 +83,28 @@ public class Robert {
                         if (timeParts.length < 2 || timeParts[0].trim().isEmpty() || timeParts[1].trim().isEmpty()) {
                             throw new RobertException("Please provide both start and end times, e.g., 'event project meeting /from Mon 2pm /to 4pm'.");
                         } else {
-                            tasks[count++] = new Event(parts[0].trim(), timeParts[0].trim(), timeParts[1].trim());
+                            tasks.add(new Event(parts[0].trim(), timeParts[0].trim(), timeParts[1].trim()));
                             System.out.println(" Got it. I've added this task:");
-                            System.out.println("   " + tasks[count - 1]);
-                            System.out.println(" Now you have " + count + " task(s) in the list.");
+                            System.out.println("   " + tasks.get(tasks.size() - 1));
+                            System.out.println(" Now you have " + tasks.size() + " task(s) in the list.");
                         }
                     }
                     System.out.println("____________________________________________________________");
+                } else if (input.startsWith("delete ")) {
+                    Integer idx = parseIndex(input);
+                    if (idx == null) {
+                        throw new RobertException("Please provide a valid task number to delete, e.g., 'delete 2'.");
+                    } else if (idx < 1 || idx > tasks.size()) {
+                        throw new RobertException("Task number out of range. You have " + tasks.size() + " task(s).");
+                    } else {
+                        Task removedTask = tasks.remove(idx - 1);
+                        System.out.println(" Noted. I've removed this task:");
+                        System.out.println("   " + removedTask);
+                        System.out.println(" Now you have " + tasks.size() + " task(s) in the list.");
+                    }
+                    System.out.println("____________________________________________________________");
                 } else {
-                    throw new RobertException("Only 'list', 'mark <num>', 'unmark <num>', 'todo <desc>', 'deadline <desc> /by <time>', 'event <desc> /from <start> /to <end>', and 'bye' commands are supported.");
+                    throw new RobertException("Only 'list', 'mark <num>', 'unmark <num>', 'todo <desc>', 'deadline <desc> /by <time>', 'event <desc> /from <start> /to <end>', 'delete <num>', and 'bye' commands are supported.");
                 }
             } catch (RobertException e) {
                 System.out.println(" " + e.getMessage());
