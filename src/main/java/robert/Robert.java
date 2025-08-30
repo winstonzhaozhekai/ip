@@ -68,8 +68,10 @@ public class Robert {
                     handleEvent(input);
                 } else if (command.equals("delete")) {
                     handleDelete(input);
+                } else if (command.equals("find")) {
+                    handleFind(input);
                 } else {
-                    throw new RobertException("Only 'list', 'mark <num>', 'unmark <num>', 'todo <desc>', 'deadline <desc> /by <time>', 'event <desc> /from <start> /to <end>', 'delete <num>', and 'bye' commands are supported.");
+                    throw new RobertException("Only 'list', 'mark <num>', 'unmark <num>', 'todo <desc>', 'deadline <desc> /by <time>', 'event <desc> /from <start> /to <end>', 'delete <num>', 'find <keyword>', and 'bye' commands are supported.");
                 }
             } catch (RobertException | IOException e) {
                 ui.showError(e.getMessage());
@@ -172,6 +174,18 @@ public class Robert {
         Task removedTask = tasks.remove(index);
         ui.showTaskDeleted(removedTask, tasks.size());
         storage.save(tasks);
+    }
+
+    /**
+     * Handles the "find" command to search for tasks containing a keyword.
+     *
+     * @param input The full user input string.
+     * @throws RobertException If the keyword is invalid.
+     */
+    private void handleFind(String input) throws RobertException {
+        String keyword = Parser.parseFind(input);
+        TaskList matchingTasks = tasks.findTasks(keyword);
+        ui.showMatchingTasks(matchingTasks);
     }
 
     /**
