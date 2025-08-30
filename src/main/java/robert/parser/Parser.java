@@ -120,4 +120,23 @@ public class Parser {
             throw new RobertException("Invalid date/time format. Please use 'yyyy-MM-dd HHmm', e.g., '2019-12-02 1400'.");
         }
     }
+
+    /**
+     * Parses a find command to extract the search keyword.
+     *
+     * @param input The full user input string.
+     * @return The search keyword.
+     * @throws RobertException If the keyword is empty.
+     */
+    public static String parseFind(String input) throws RobertException {
+        String trimmed = input.trim();
+        if (trimmed.length() <= 4 || !trimmed.startsWith("find")) {
+            throw new RobertException("Please provide a keyword to search for.");
+        }
+        String keyword = trimmed.substring(4).trim();
+        if (keyword.isEmpty()) {
+            throw new RobertException("Please provide a keyword to search for.");
+        }
+        return keyword;
+    }
 }

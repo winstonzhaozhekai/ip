@@ -114,6 +114,22 @@ public class Ui {
     }
 
     /**
+     * Displays the list of matching tasks from a search.
+     *
+     * @param tasks The TaskList containing matching tasks.
+     */
+    public void showMatchingTasks(TaskList tasks) {
+        if (tasks.size() == 0) {
+            System.out.println(" No matching tasks found.");
+        } else {
+            System.out.println(" Here are the matching tasks in your list:");
+            for (int i = 0; i < tasks.size(); i++) {
+                System.out.println(" " + (i + 1) + "." + tasks.get(i));
+            }
+        }
+    }
+
+    /**
      * Reads a command from the user.
      *
      * @return The user's input command.
