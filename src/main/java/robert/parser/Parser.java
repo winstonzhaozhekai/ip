@@ -11,11 +11,15 @@ import java.time.format.DateTimeParseException;
 public class Parser {
     
     public static String parseCommand(String input) {
-        return input.split("\\s+")[0];
+        String trimmed = input.trim();
+        if (trimmed.isEmpty()) {
+            return "";
+        }
+        return trimmed.split("\\s+")[0];
     }
 
     public static int parseTaskIndex(String input) throws RobertException {
-        String[] parts = input.split("\\s+");
+        String[] parts = input.trim().split("\\s+");
         if (parts.length != 2) {
             throw new RobertException("Please provide a valid task number.");
         }
@@ -28,7 +32,11 @@ public class Parser {
     }
 
     public static Todo parseTodo(String input) throws RobertException {
-        String description = input.substring(5).trim();
+        String trimmed = input.trim();
+        if (trimmed.length() <= 4 || !trimmed.startsWith("todo")) {
+            throw new RobertException("The description of a todo cannot be empty.");
+        }
+        String description = trimmed.substring(4).trim();
         if (description.isEmpty()) {
             throw new RobertException("The description of a todo cannot be empty.");
         }
