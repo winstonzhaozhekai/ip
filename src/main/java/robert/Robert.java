@@ -11,12 +11,21 @@ import robert.parser.Parser;
 import robert.exception.RobertException;
 import java.io.IOException;
 
+/**
+ * Main class for the Robert chatbot application.
+ * Handles the main program flow and user command processing.
+ */
 public class Robert {
     private static final String FILE_PATH = "./data/duke.txt";
     private Storage storage;
     private TaskList tasks;
     private Ui ui;
 
+    /**
+     * Constructs a new Robert instance with the specified file path for storage.
+     *
+     * @param filePath Path to the file used for saving and loading tasks.
+     */
     public Robert(String filePath) {
         ui = new Ui();
         storage = new Storage(filePath);
@@ -28,6 +37,9 @@ public class Robert {
         }
     }
 
+    /**
+     * Runs the main loop of the Robert chatbot, processing user commands.
+     */
     public void run() {
         ui.showWelcome();
         
@@ -69,6 +81,13 @@ public class Robert {
         ui.close();
     }
 
+    /**
+     * Handles the "mark" command to mark a task as done.
+     *
+     * @param input The full user input string.
+     * @throws RobertException If the task index is invalid.
+     * @throws IOException If saving tasks fails.
+     */
     private void handleMark(String input) throws RobertException, IOException {
         int index = Parser.parseTaskIndex(input);
         if (index < 0 || index >= tasks.size()) {
@@ -79,6 +98,13 @@ public class Robert {
         storage.save(tasks);
     }
 
+    /**
+     * Handles the "unmark" command to unmark a task as not done.
+     *
+     * @param input The full user input string.
+     * @throws RobertException If the task index is invalid.
+     * @throws IOException If saving tasks fails.
+     */
     private void handleUnmark(String input) throws RobertException, IOException {
         int index = Parser.parseTaskIndex(input);
         if (index < 0 || index >= tasks.size()) {
@@ -89,6 +115,13 @@ public class Robert {
         storage.save(tasks);
     }
 
+    /**
+     * Handles the "todo" command to add a new Todo task.
+     *
+     * @param input The full user input string.
+     * @throws RobertException If the input is invalid.
+     * @throws IOException If saving tasks fails.
+     */
     private void handleTodo(String input) throws RobertException, IOException {
         Todo todo = Parser.parseTodo(input);
         tasks.add(todo);
@@ -96,6 +129,13 @@ public class Robert {
         storage.save(tasks);
     }
 
+    /**
+     * Handles the "deadline" command to add a new Deadline task.
+     *
+     * @param input The full user input string.
+     * @throws RobertException If the input is invalid.
+     * @throws IOException If saving tasks fails.
+     */
     private void handleDeadline(String input) throws RobertException, IOException {
         Deadline deadline = Parser.parseDeadline(input);
         tasks.add(deadline);
@@ -103,6 +143,13 @@ public class Robert {
         storage.save(tasks);
     }
 
+    /**
+     * Handles the "event" command to add a new Event task.
+     *
+     * @param input The full user input string.
+     * @throws RobertException If the input is invalid.
+     * @throws IOException If saving tasks fails.
+     */
     private void handleEvent(String input) throws RobertException, IOException {
         Event event = Parser.parseEvent(input);
         tasks.add(event);
@@ -110,6 +157,13 @@ public class Robert {
         storage.save(tasks);
     }
 
+    /**
+     * Handles the "delete" command to remove a task.
+     *
+     * @param input The full user input string.
+     * @throws RobertException If the task index is invalid.
+     * @throws IOException If saving tasks fails.
+     */
     private void handleDelete(String input) throws RobertException, IOException {
         int index = Parser.parseTaskIndex(input);
         if (index < 0 || index >= tasks.size()) {
@@ -120,6 +174,11 @@ public class Robert {
         storage.save(tasks);
     }
 
+    /**
+     * Main entry point for the Robert chatbot application.
+     *
+     * @param args Command line arguments.
+     */
     public static void main(String[] args) {
         new Robert(FILE_PATH).run();
     }

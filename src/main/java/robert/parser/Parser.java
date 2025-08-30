@@ -8,8 +8,16 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
+/**
+ * Handles parsing of user input commands for the Robert chatbot.
+ */
 public class Parser {
-    
+    /**
+     * Parses the command word from the user input.
+     *
+     * @param input The full user input string.
+     * @return The command word.
+     */
     public static String parseCommand(String input) {
         String trimmed = input.trim();
         if (trimmed.isEmpty()) {
@@ -18,6 +26,13 @@ public class Parser {
         return trimmed.split("\\s+")[0];
     }
 
+    /**
+     * Parses the task index from the user input.
+     *
+     * @param input The full user input string.
+     * @return The zero-based task index.
+     * @throws RobertException If the input format is invalid.
+     */
     public static int parseTaskIndex(String input) throws RobertException {
         String[] parts = input.trim().split("\\s+");
         if (parts.length != 2) {
@@ -31,6 +46,13 @@ public class Parser {
         }
     }
 
+    /**
+     * Parses a Todo task from the user input.
+     *
+     * @param input The full user input string.
+     * @return The Todo task.
+     * @throws RobertException If the description is empty or invalid.
+     */
     public static Todo parseTodo(String input) throws RobertException {
         String trimmed = input.trim();
         if (trimmed.length() <= 4 || !trimmed.startsWith("todo")) {
@@ -43,6 +65,13 @@ public class Parser {
         return new Todo(description);
     }
 
+    /**
+     * Parses a Deadline task from the user input.
+     *
+     * @param input The full user input string.
+     * @return The Deadline task.
+     * @throws RobertException If the input format or date/time is invalid.
+     */
     public static Deadline parseDeadline(String input) throws RobertException {
         String[] parts = input.substring(9).split(" /by ", 2);
         if (parts.length < 2 || parts[0].trim().isEmpty() || parts[1].trim().isEmpty()) {
@@ -57,6 +86,13 @@ public class Parser {
         }
     }
 
+    /**
+     * Parses an Event task from the user input.
+     *
+     * @param input The full user input string.
+     * @return The Event task.
+     * @throws RobertException If the input format or date/time is invalid.
+     */
     public static Event parseEvent(String input) throws RobertException {
         String[] parts = input.substring(6).split(" /from ", 2);
         if (parts.length < 2 || parts[0].trim().isEmpty()) {

@@ -8,13 +8,27 @@ import robert.task.Event;
 import java.io.*;
 import java.util.ArrayList;
 
+/**
+ * Handles loading and saving of tasks to a file for persistence.
+ */
 public class Storage {
     private final File file;
 
+    /**
+     * Constructs a Storage object for the given file path.
+     *
+     * @param filePath Path to the file for storing tasks.
+     */
     public Storage(String filePath) {
         this.file = new File(filePath);
     }
 
+    /**
+     * Loads tasks from the file.
+     *
+     * @return ArrayList of loaded tasks.
+     * @throws IOException If an I/O error occurs.
+     */
     public ArrayList<Task> load() throws IOException {
         ArrayList<Task> tasks = new ArrayList<>();
         if (!file.exists()) {
@@ -54,6 +68,12 @@ public class Storage {
         return tasks;
     }
 
+    /**
+     * Saves the given TaskList to the file.
+     *
+     * @param taskList The TaskList to save.
+     * @throws IOException If an I/O error occurs.
+     */
     public void save(TaskList taskList) throws IOException {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
             for (int i = 0; i < taskList.size(); i++) {
