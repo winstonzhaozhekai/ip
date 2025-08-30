@@ -1,3 +1,9 @@
+package robert.parser;
+
+import robert.task.Todo;
+import robert.task.Deadline;
+import robert.task.Event;
+import robert.exception.RobertException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;

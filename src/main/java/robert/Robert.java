@@ -1,3 +1,14 @@
+package robert;
+
+import robert.storage.Storage;
+import robert.task.TaskList;
+import robert.task.Task;
+import robert.task.Todo;
+import robert.task.Deadline;
+import robert.task.Event;
+import robert.ui.Ui;
+import robert.parser.Parser;
+import robert.exception.RobertException;
 import java.io.IOException;
 
 public class Robert {
