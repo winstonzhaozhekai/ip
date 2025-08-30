@@ -13,14 +13,26 @@ then
 fi
 
 # compile the code into the bin folder, terminates if error occurred
-if ! javac -cp ../src/main/java -Xlint:none -d ../bin ../src/main/java/*.java
+if ! javac -cp ../src/main/java -Xlint:none -d ../bin \
+    ../src/main/java/robert/Robert.java \
+    ../src/main/java/robert/task/*.java \
+    ../src/main/java/robert/storage/*.java \
+    ../src/main/java/robert/ui/*.java \
+    ../src/main/java/robert/parser/*.java \
+    ../src/main/java/robert/exception/*.java
 then
     echo "********** BUILD FAILURE **********"
     exit 1
 fi
 
+# Clean up data file before testing
+if [ -e "../data/duke.txt" ]
+then
+    rm ../data/duke.txt
+fi
+
 # run the program, feed commands from input.txt file and redirect the output to the ACTUAL.TXT
-java -classpath ../bin Robert < input.txt > ACTUAL.TXT
+java -classpath ../bin robert.Robert < input.txt > ACTUAL.TXT
 
 # convert to UNIX format
 cp EXPECTED.TXT EXPECTED-UNIX.TXT
