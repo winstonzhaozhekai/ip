@@ -21,19 +21,23 @@ public class Storage {
                     String type = parts[0];
                     boolean isDone = parts[1].equals("1");
                     String description = parts[2];
+                    Task task = null;
                     switch (type) {
                         case "T":
-                            tasks.add(new Todo(description));
+                            task = new Todo(description);
                             break;
                         case "D":
-                            tasks.add(new Deadline(description, parts[3]));
+                            task = new Deadline(description, parts[3]);
                             break;
                         case "E":
-                            tasks.add(new Event(description, parts[3], parts[4]));
+                            task = new Event(description, parts[3], parts[4]);
                             break;
                     }
-                    if (isDone) {
-                        tasks.get(tasks.size() - 1).markAsDone();
+                    if (task != null) {
+                        if (isDone) {
+                            task.markAsDone();
+                        }
+                        tasks.add(task);
                     }
                 }
             } catch (Exception e) {
@@ -43,9 +47,10 @@ public class Storage {
         return tasks;
     }
 
-    public void save(ArrayList<Task> tasks) throws IOException {
+    public void save(TaskList taskList) throws IOException {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
-            for (Task task : tasks) {
+            for (int i = 0; i < taskList.size(); i++) {
+                Task task = taskList.get(i);
                 StringBuilder sb = new StringBuilder();
                 if (task instanceof Todo) {
                     sb.append("T | ");
