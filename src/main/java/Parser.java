@@ -1,0 +1,73 @@
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+
+public class Parser {
+    
+    public static String parseCommand(String input) {
+        return input.split("\\s+")[0];
+    }
+
+    public static int parseTaskIndex(String input) throws RobertException {
+        String[] parts = input.split("\\s+");
+        if (parts.length != 2) {
+            throw new RobertException("Please provide a valid task number.");
+        }
+        try {
+            int index = Integer.parseInt(parts[1]);
+            return index - 1; // Convert to 0-based index
+        } catch (NumberFormatException e) {
+            throw new RobertException("Please provide a valid task number.");
+        }
+    }
+
+    public static Todo parseTodo(String input) throws RobertException {
+        String description = input.substring(5).trim();
+        if (description.isEmpty()) {
+            throw new RobertException("The description of a todo cannot be empty.");
+        }
+        return new Todo(description);
+    }
+
+    public static Deadline parseDeadline(String input) throws RobertException {
+        String[] parts = input.substring(9).split(" /by ", 2);
+        if (parts.length < 2 || parts[0].trim().isEmpty() || parts[1].trim().isEmpty()) {
+            throw new RobertException("Please provide a valid description and deadline, e.g., 'deadline return book /by 2019-12-02 1800'.");
+        }
+        
+        try {
+            LocalDateTime by = LocalDateTime.parse(parts[1].trim(), DateTimeFormatter.ofPattern("yyyy-MM-dd HHmm"));
+            return new Deadline(parts[0].trim(), by);
+        } catch (DateTimeParseException e) {
+            throw new RobertException("Invalid date/time format. Please use 'yyyy-MM-dd HHmm', e.g., '2019-12-02 1800'.");
+        }
+    }
+
+    public static Event parseEvent(String input) throws RobertException {
+        String[] parts = input.substring(6).split(" /from ", 2);
+        if (parts.length < 2 || parts[0].trim().isEmpty()) {
+            throw new RobertException("Please provide a valid description and event time, e.g., 'event project meeting /from 2019-12-02 1400 /to 1600'.");
+        }
+        
+        String[] timeParts = parts[1].split(" /to ", 2);
+        if (timeParts.length < 2 || timeParts[0].trim().isEmpty() || timeParts[1].trim().isEmpty()) {
+            throw new RobertException("Please provide both start and end times, e.g., 'event project meeting /from 2019-12-02 1400 /to 1600'.");
+        }
+        
+        try {
+            LocalDateTime from = LocalDateTime.parse(timeParts[0].trim(), DateTimeFormatter.ofPattern("yyyy-MM-dd HHmm"));
+            LocalDateTime to;
+            if (timeParts[1].trim().contains("-")) {
+                // Full date and time provided for /to
+                to = LocalDateTime.parse(timeParts[1].trim(), DateTimeFormatter.ofPattern("yyyy-MM-dd HHmm"));
+            } else {
+                // Only time provided for /to, assume same day as /from
+                to = from.withHour(Integer.parseInt(timeParts[1].trim().substring(0, 2)))
+                         .withMinute(Integer.parseInt(timeParts[1].trim().substring(2)));
+            }
+            return new Event(parts[0].trim(), from, to);
+        } catch (DateTimeParseException | NumberFormatException e) {
+            throw new RobertException("Invalid date/time format. Please use 'yyyy-MM-dd HHmm', e.g., '2019-12-02 1400'.");
+        }
+    }
+}

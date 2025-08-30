@@ -1,164 +1,115 @@
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Scanner;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 
 public class Robert {
     private static final String FILE_PATH = "./data/duke.txt";
+    private Storage storage;
+    private TaskList tasks;
+    private Ui ui;
 
-    public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        Storage storage = new Storage(FILE_PATH);
-        ArrayList<Task> tasks;
-
+    public Robert(String filePath) {
+        ui = new Ui();
+        storage = new Storage(filePath);
         try {
-            tasks = storage.load();
+            tasks = new TaskList(storage.load());
         } catch (IOException e) {
-            System.out.println("Error loading tasks. Starting with an empty task list.");
-            tasks = new ArrayList<>();
+            ui.showLoadingError();
+            tasks = new TaskList();
         }
+    }
 
-        System.out.println("____________________________________________________________");
-        System.out.println(" Wassup chat! I'm Robert");
-        System.out.println(" What can I do for you?");
-        System.out.println("____________________________________________________________");
-
+    public void run() {
+        ui.showWelcome();
+        
         while (true) {
-            String input = sc.nextLine().trim();
-
-            System.out.println("____________________________________________________________");
+            String input = ui.readCommand();
+            ui.showLine();
+            
             try {
-                if (input.equals("bye")) {
-                    System.out.println(" Bye. Hope to see you again soon!");
-                    System.out.println("____________________________________________________________");
+                String command = Parser.parseCommand(input);
+                
+                if (command.equals("bye")) {
+                    ui.showGoodbye();
+                    ui.showLine();
                     break;
-                } else if (input.equals("list")) {
-                    System.out.println(" Here are the tasks in your list:");
-                    for (int i = 0; i < tasks.size(); i++) {
-                        System.out.println(" " + (i + 1) + ". " + tasks.get(i));
-                    }
-                    System.out.println("____________________________________________________________");
-                } else if (input.startsWith("mark ")) {
-                    Integer idx = parseIndex(input);
-                    if (idx == null) {
-                        throw new RobertException("Please provide a valid task number to mark, e.g., 'mark 2'.");
-                    } else if (idx < 1 || idx > tasks.size()) {
-                        throw new RobertException("Task number out of range. You have " + tasks.size() + " task(s).");
-                    } else {
-                        Task t = tasks.get(idx - 1);
-                        t.markAsDone();
-                        System.out.println(" Nice! I've marked this task as done:");
-                        System.out.println("   " + t);
-                        storage.save(tasks);
-                    }
-                    System.out.println("____________________________________________________________");
-                } else if (input.startsWith("unmark ")) {
-                    Integer idx = parseIndex(input);
-                    if (idx == null) {
-                        throw new RobertException("Please provide a valid task number to unmark, e.g., 'unmark 2'.");
-                    } else if (idx < 1 || idx > tasks.size()) {
-                        throw new RobertException("Task number out of range. You have " + tasks.size() + " task(s).");
-                    } else {
-                        Task t = tasks.get(idx - 1);
-                        t.markAsNotDone();
-                        System.out.println(" OK, I've marked this task as not done yet:");
-                        System.out.println("   " + t);
-                        storage.save(tasks);
-                    }
-                    System.out.println("____________________________________________________________");
-                } else if (input.startsWith("todo ")) {
-                    String description = input.substring(5).trim();
-                    if (description.isEmpty()) {
-                        throw new RobertException("The description of a todo cannot be empty.");
-                    } else {
-                        tasks.add(new Todo(description));
-                        System.out.println(" Got it. I've added this task:");
-                        System.out.println("   " + tasks.get(tasks.size() - 1));
-                        System.out.println(" Now you have " + tasks.size() + " task(s) in the list.");
-                        storage.save(tasks);
-                    }
-                    System.out.println("____________________________________________________________");
-                } else if (input.startsWith("deadline ")) {
-                    String[] parts = input.substring(9).split(" /by ", 2);
-                    if (parts.length < 2 || parts[0].trim().isEmpty() || parts[1].trim().isEmpty()) {
-                        throw new RobertException("Please provide a valid description and deadline, e.g., 'deadline return book /by 2019-12-02 1800'.");
-                    } else {
-                        try {
-                            LocalDateTime by = LocalDateTime.parse(parts[1].trim(), DateTimeFormatter.ofPattern("yyyy-MM-dd HHmm"));
-                            tasks.add(new Deadline(parts[0].trim(), by));
-                            System.out.println(" Got it. I've added this task:");
-                            System.out.println("   " + tasks.get(tasks.size() - 1));
-                            System.out.println(" Now you have " + tasks.size() + " task(s) in the list.");
-                        } catch (DateTimeParseException e) {
-                            throw new RobertException("Invalid date/time format. Please use 'yyyy-MM-dd HHmm', e.g., '2019-12-02 1800'.");
-                        }
-                    }
-                    System.out.println("____________________________________________________________");
-                } else if (input.startsWith("event ")) {
-                    String[] parts = input.substring(6).split(" /from ", 2);
-                    if (parts.length < 2 || parts[0].trim().isEmpty()) {
-                        throw new RobertException("Please provide a valid description and event time, e.g., 'event project meeting /from 2019-12-02 1400 /to 1600'.");
-                    } else {
-                        String[] timeParts = parts[1].split(" /to ", 2);
-                        if (timeParts.length < 2 || timeParts[0].trim().isEmpty() || timeParts[1].trim().isEmpty()) {
-                            throw new RobertException("Please provide both start and end times, e.g., 'event project meeting /from 2019-12-02 1400 /to 1600'.");
-                        } else {
-                            try {
-                                LocalDateTime from = LocalDateTime.parse(timeParts[0].trim(), DateTimeFormatter.ofPattern("yyyy-MM-dd HHmm"));
-                                LocalDateTime to;
-                                if (timeParts[1].trim().contains("-")) {
-                                    // Full date and time provided for /to
-                                    to = LocalDateTime.parse(timeParts[1].trim(), DateTimeFormatter.ofPattern("yyyy-MM-dd HHmm"));
-                                } else {
-                                    // Only time provided for /to, assume same day as /from
-                                    to = from.withHour(Integer.parseInt(timeParts[1].trim().substring(0, 2)))
-                                             .withMinute(Integer.parseInt(timeParts[1].trim().substring(2)));
-                                }
-                                tasks.add(new Event(parts[0].trim(), from, to));
-                                System.out.println(" Got it. I've added this task:");
-                                System.out.println("   " + tasks.get(tasks.size() - 1));
-                                System.out.println(" Now you have " + tasks.size() + " task(s) in the list.");
-                            } catch (DateTimeParseException | NumberFormatException e) {
-                                throw new RobertException("Invalid date/time format. Please use 'yyyy-MM-dd HHmm', e.g., '2019-12-02 1400'.");
-                            }
-                        }
-                    }
-                    System.out.println("____________________________________________________________");
-                } else if (input.startsWith("delete ")) {
-                    Integer idx = parseIndex(input);
-                    if (idx == null) {
-                        throw new RobertException("Please provide a valid task number to delete, e.g., 'delete 2'.");
-                    } else if (idx < 1 || idx > tasks.size()) {
-                        throw new RobertException("Task number out of range. You have " + tasks.size() + " task(s).");
-                    } else {
-                        Task removedTask = tasks.remove(idx - 1);
-                        System.out.println(" Noted. I've removed this task:");
-                        System.out.println("   " + removedTask);
-                        System.out.println(" Now you have " + tasks.size() + " task(s) in the list.");
-                        storage.save(tasks);
-                    }
-                    System.out.println("____________________________________________________________");
+                } else if (command.equals("list")) {
+                    ui.showTaskList(tasks);
+                } else if (command.equals("mark")) {
+                    handleMark(input);
+                } else if (command.equals("unmark")) {
+                    handleUnmark(input);
+                } else if (command.equals("todo")) {
+                    handleTodo(input);
+                } else if (command.equals("deadline")) {
+                    handleDeadline(input);
+                } else if (command.equals("event")) {
+                    handleEvent(input);
+                } else if (command.equals("delete")) {
+                    handleDelete(input);
                 } else {
                     throw new RobertException("Only 'list', 'mark <num>', 'unmark <num>', 'todo <desc>', 'deadline <desc> /by <time>', 'event <desc> /from <start> /to <end>', 'delete <num>', and 'bye' commands are supported.");
                 }
             } catch (RobertException | IOException e) {
-                System.out.println(" " + e.getMessage());
-                System.out.println("____________________________________________________________");
+                ui.showError(e.getMessage());
+            } finally {
+                ui.showLine();
             }
         }
-
-        sc.close();
+        
+        ui.close();
     }
 
-    private static Integer parseIndex(String input) {
-        String[] parts = input.split("\\s+");
-        if (parts.length != 2) return null;
-        try {
-            return Integer.parseInt(parts[1]);
-        } catch (NumberFormatException e) {
-            return null;
+    private void handleMark(String input) throws RobertException, IOException {
+        int index = Parser.parseTaskIndex(input);
+        if (index < 0 || index >= tasks.size()) {
+            throw new RobertException("Task number out of range. You have " + tasks.size() + " task(s).");
         }
+        tasks.markTask(index);
+        ui.showTaskMarked(tasks.get(index));
+        storage.save(tasks);
+    }
+
+    private void handleUnmark(String input) throws RobertException, IOException {
+        int index = Parser.parseTaskIndex(input);
+        if (index < 0 || index >= tasks.size()) {
+            throw new RobertException("Task number out of range. You have " + tasks.size() + " task(s).");
+        }
+        tasks.unmarkTask(index);
+        ui.showTaskUnmarked(tasks.get(index));
+        storage.save(tasks);
+    }
+
+    private void handleTodo(String input) throws RobertException, IOException {
+        Todo todo = Parser.parseTodo(input);
+        tasks.add(todo);
+        ui.showTaskAdded(todo, tasks.size());
+        storage.save(tasks);
+    }
+
+    private void handleDeadline(String input) throws RobertException, IOException {
+        Deadline deadline = Parser.parseDeadline(input);
+        tasks.add(deadline);
+        ui.showTaskAdded(deadline, tasks.size());
+        storage.save(tasks);
+    }
+
+    private void handleEvent(String input) throws RobertException, IOException {
+        Event event = Parser.parseEvent(input);
+        tasks.add(event);
+        ui.showTaskAdded(event, tasks.size());
+        storage.save(tasks);
+    }
+
+    private void handleDelete(String input) throws RobertException, IOException {
+        int index = Parser.parseTaskIndex(input);
+        if (index < 0 || index >= tasks.size()) {
+            throw new RobertException("Task number out of range. You have " + tasks.size() + " task(s).");
+        }
+        Task removedTask = tasks.remove(index);
+        ui.showTaskDeleted(removedTask, tasks.size());
+        storage.save(tasks);
+    }
+
+    public static void main(String[] args) {
+        new Robert(FILE_PATH).run();
     }
 }
