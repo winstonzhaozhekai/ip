@@ -38,7 +38,172 @@ public class Robert {
     }
 
     /**
-     * Runs the main loop of the Robert chatbot, processing user commands.
+     * Generates a response for the user's chat message.
+     */
+    public String getResponse(String input) {
+        try {
+            String command = Parser.parseCommand(input);
+            
+            if (command.equals("bye")) {
+                return "Bye. Hope to see you again soon!";
+            } else if (command.equals("list")) {
+                return getTaskListString();
+            } else if (command.equals("mark")) {
+                return handleMark(input);
+            } else if (command.equals("unmark")) {
+                return handleUnmark(input);
+            } else if (command.equals("todo")) {
+                return handleTodo(input);
+            } else if (command.equals("deadline")) {
+                return handleDeadline(input);
+            } else if (command.equals("event")) {
+                return handleEvent(input);
+            } else if (command.equals("delete")) {
+                return handleDelete(input);
+            } else if (command.equals("find")) {
+                return handleFind(input);
+            } else {
+                return "Only 'list', 'mark <num>', 'unmark <num>', 'todo <desc>', 'deadline <desc> /by <time>', 'event <desc> /from <start> /to <end>', 'delete <num>', 'find <keyword>', and 'bye' commands are supported.";
+            }
+        } catch (RobertException | IOException e) {
+            return e.getMessage();
+        }
+    }
+
+    private String getTaskListString() {
+        if (tasks.size() == 0) {
+            return "You have no tasks in your list.";
+        }
+        StringBuilder sb = new StringBuilder("Here are the tasks in your list:\n");
+        for (int i = 0; i < tasks.size(); i++) {
+            sb.append((i + 1)).append(". ").append(tasks.get(i)).append("\n");
+        }
+        return sb.toString().trim();
+    }
+
+    /**
+     * Handles the "mark" command to mark a task as done.
+     *
+     * @param input The full user input string.
+     * @return Response message.
+     * @throws RobertException If the task index is invalid.
+     * @throws IOException If saving tasks fails.
+     */
+    private String handleMark(String input) throws RobertException, IOException {
+        int index = Parser.parseTaskIndex(input);
+        if (index < 0 || index >= tasks.size()) {
+            throw new RobertException("Task number out of range. You have " + tasks.size() + " task(s).");
+        }
+        tasks.markTask(index);
+        storage.save(tasks);
+        return "Nice! I've marked this task as done:\n  " + tasks.get(index);
+    }
+
+    /**
+     * Handles the "unmark" command to unmark a task as not done.
+     *
+     * @param input The full user input string.
+     * @return Response message.
+     * @throws RobertException If the task index is invalid.
+     * @throws IOException If saving tasks fails.
+     */
+    private String handleUnmark(String input) throws RobertException, IOException {
+        int index = Parser.parseTaskIndex(input);
+        if (index < 0 || index >= tasks.size()) {
+            throw new RobertException("Task number out of range. You have " + tasks.size() + " task(s).");
+        }
+        tasks.unmarkTask(index);
+        storage.save(tasks);
+        return "OK, I've marked this task as not done yet:\n  " + tasks.get(index);
+    }
+
+    /**
+     * Handles the "todo" command to add a new Todo task.
+     *
+     * @param input The full user input string.
+     * @return Response message.
+     * @throws RobertException If the input is invalid.
+     * @throws IOException If saving tasks fails.
+     */
+    private String handleTodo(String input) throws RobertException, IOException {
+        Todo todo = Parser.parseTodo(input);
+        tasks.add(todo);
+        storage.save(tasks);
+        return "Got it. I've added this task:\n  " + todo + "\nNow you have " + tasks.size() + " task(s) in the list.";
+    }
+
+    /**
+     * Handles the "deadline" command to add a new Deadline task.
+     *
+     * @param input The full user input string.
+     * @return Response message.
+     * @throws RobertException If the input is invalid.
+     * @throws IOException If saving tasks fails.
+     */
+    private String handleDeadline(String input) throws RobertException, IOException {
+        Deadline deadline = Parser.parseDeadline(input);
+        tasks.add(deadline);
+        storage.save(tasks);
+        return "Got it. I've added this task:\n  " + deadline + "\nNow you have " + tasks.size() + " task(s) in the list.";
+    }
+
+    /**
+     * Handles the "event" command to add a new Event task.
+     *
+     * @param input The full user input string.
+     * @return Response message.
+     * @throws RobertException If the input is invalid.
+     * @throws IOException If saving tasks fails.
+     */
+    private String handleEvent(String input) throws RobertException, IOException {
+        Event event = Parser.parseEvent(input);
+        tasks.add(event);
+        storage.save(tasks);
+        return "Got it. I've added this task:\n  " + event + "\nNow you have " + tasks.size() + " task(s) in the list.";
+    }
+
+    /**
+     * Handles the "delete" command to remove a task.
+     *
+     * @param input The full user input string.
+     * @return Response message.
+     * @throws RobertException If the task index is invalid.
+     * @throws IOException If saving tasks fails.
+     */
+    private String handleDelete(String input) throws RobertException, IOException {
+        int index = Parser.parseTaskIndex(input);
+        if (index < 0 || index >= tasks.size()) {
+            throw new RobertException("Task number out of range. You have " + tasks.size() + " task(s).");
+        }
+        Task removedTask = tasks.remove(index);
+        storage.save(tasks);
+        return "Noted. I've removed this task:\n  " + removedTask + "\nNow you have " + tasks.size() + " task(s) in the list.";
+    }
+
+    /**
+     * Handles the "find" command to search for tasks containing a keyword.
+     *
+     * @param input The full user input string.
+     * @return Response message.
+     * @throws RobertException If the keyword is invalid.
+     */
+    private String handleFind(String input) throws RobertException {
+        String keyword = Parser.parseFind(input);
+        TaskList matchingTasks = tasks.findTasks(keyword);
+        if (matchingTasks.size() == 0) {
+            return "No matching tasks found.";
+        } else {
+            StringBuilder sb = new StringBuilder("Here are the matching tasks in your list:\n");
+            for (int i = 0; i < matchingTasks.size(); i++) {
+                sb.append((i + 1)).append(".").append(matchingTasks.get(i)).append("\n");
+            }
+            return sb.toString().trim();
+        }
+    }
+
+    /**
+     * Runs the command-line interface version of Robert.
+     * This method is for backward compatibility with the CLI version.
      */
     public void run() {
         ui.showWelcome();
@@ -57,19 +222,48 @@ public class Robert {
                 } else if (command.equals("list")) {
                     ui.showTaskList(tasks);
                 } else if (command.equals("mark")) {
-                    handleMark(input);
+                    int index = Parser.parseTaskIndex(input);
+                    if (index < 0 || index >= tasks.size()) {
+                        throw new RobertException("Task number out of range. You have " + tasks.size() + " task(s).");
+                    }
+                    tasks.markTask(index);
+                    storage.save(tasks);
+                    ui.showTaskMarked(tasks.get(index));
                 } else if (command.equals("unmark")) {
-                    handleUnmark(input);
+                    int index = Parser.parseTaskIndex(input);
+                    if (index < 0 || index >= tasks.size()) {
+                        throw new RobertException("Task number out of range. You have " + tasks.size() + " task(s).");
+                    }
+                    tasks.unmarkTask(index);
+                    storage.save(tasks);
+                    ui.showTaskUnmarked(tasks.get(index));
                 } else if (command.equals("todo")) {
-                    handleTodo(input);
+                    Todo todo = Parser.parseTodo(input);
+                    tasks.add(todo);
+                    storage.save(tasks);
+                    ui.showTaskAdded(todo, tasks.size());
                 } else if (command.equals("deadline")) {
-                    handleDeadline(input);
+                    Deadline deadline = Parser.parseDeadline(input);
+                    tasks.add(deadline);
+                    storage.save(tasks);
+                    ui.showTaskAdded(deadline, tasks.size());
                 } else if (command.equals("event")) {
-                    handleEvent(input);
+                    Event event = Parser.parseEvent(input);
+                    tasks.add(event);
+                    storage.save(tasks);
+                    ui.showTaskAdded(event, tasks.size());
                 } else if (command.equals("delete")) {
-                    handleDelete(input);
+                    int index = Parser.parseTaskIndex(input);
+                    if (index < 0 || index >= tasks.size()) {
+                        throw new RobertException("Task number out of range. You have " + tasks.size() + " task(s).");
+                    }
+                    Task removedTask = tasks.remove(index);
+                    storage.save(tasks);
+                    ui.showTaskDeleted(removedTask, tasks.size());
                 } else if (command.equals("find")) {
-                    handleFind(input);
+                    String keyword = Parser.parseFind(input);
+                    TaskList matchingTasks = tasks.findTasks(keyword);
+                    ui.showMatchingTasks(matchingTasks);
                 } else {
                     throw new RobertException("Only 'list', 'mark <num>', 'unmark <num>', 'todo <desc>', 'deadline <desc> /by <time>', 'event <desc> /from <start> /to <end>', 'delete <num>', 'find <keyword>', and 'bye' commands are supported.");
                 }
@@ -81,111 +275,6 @@ public class Robert {
         }
         
         ui.close();
-    }
-
-    /**
-     * Handles the "mark" command to mark a task as done.
-     *
-     * @param input The full user input string.
-     * @throws RobertException If the task index is invalid.
-     * @throws IOException If saving tasks fails.
-     */
-    private void handleMark(String input) throws RobertException, IOException {
-        int index = Parser.parseTaskIndex(input);
-        if (index < 0 || index >= tasks.size()) {
-            throw new RobertException("Task number out of range. You have " + tasks.size() + " task(s).");
-        }
-        tasks.markTask(index);
-        ui.showTaskMarked(tasks.get(index));
-        storage.save(tasks);
-    }
-
-    /**
-     * Handles the "unmark" command to unmark a task as not done.
-     *
-     * @param input The full user input string.
-     * @throws RobertException If the task index is invalid.
-     * @throws IOException If saving tasks fails.
-     */
-    private void handleUnmark(String input) throws RobertException, IOException {
-        int index = Parser.parseTaskIndex(input);
-        if (index < 0 || index >= tasks.size()) {
-            throw new RobertException("Task number out of range. You have " + tasks.size() + " task(s).");
-        }
-        tasks.unmarkTask(index);
-        ui.showTaskUnmarked(tasks.get(index));
-        storage.save(tasks);
-    }
-
-    /**
-     * Handles the "todo" command to add a new Todo task.
-     *
-     * @param input The full user input string.
-     * @throws RobertException If the input is invalid.
-     * @throws IOException If saving tasks fails.
-     */
-    private void handleTodo(String input) throws RobertException, IOException {
-        Todo todo = Parser.parseTodo(input);
-        tasks.add(todo);
-        ui.showTaskAdded(todo, tasks.size());
-        storage.save(tasks);
-    }
-
-    /**
-     * Handles the "deadline" command to add a new Deadline task.
-     *
-     * @param input The full user input string.
-     * @throws RobertException If the input is invalid.
-     * @throws IOException If saving tasks fails.
-     */
-    private void handleDeadline(String input) throws RobertException, IOException {
-        Deadline deadline = Parser.parseDeadline(input);
-        tasks.add(deadline);
-        ui.showTaskAdded(deadline, tasks.size());
-        storage.save(tasks);
-    }
-
-    /**
-     * Handles the "event" command to add a new Event task.
-     *
-     * @param input The full user input string.
-     * @throws RobertException If the input is invalid.
-     * @throws IOException If saving tasks fails.
-     */
-    private void handleEvent(String input) throws RobertException, IOException {
-        Event event = Parser.parseEvent(input);
-        tasks.add(event);
-        ui.showTaskAdded(event, tasks.size());
-        storage.save(tasks);
-    }
-
-    /**
-     * Handles the "delete" command to remove a task.
-     *
-     * @param input The full user input string.
-     * @throws RobertException If the task index is invalid.
-     * @throws IOException If saving tasks fails.
-     */
-    private void handleDelete(String input) throws RobertException, IOException {
-        int index = Parser.parseTaskIndex(input);
-        if (index < 0 || index >= tasks.size()) {
-            throw new RobertException("Task number out of range. You have " + tasks.size() + " task(s).");
-        }
-        Task removedTask = tasks.remove(index);
-        ui.showTaskDeleted(removedTask, tasks.size());
-        storage.save(tasks);
-    }
-
-    /**
-     * Handles the "find" command to search for tasks containing a keyword.
-     *
-     * @param input The full user input string.
-     * @throws RobertException If the keyword is invalid.
-     */
-    private void handleFind(String input) throws RobertException {
-        String keyword = Parser.parseFind(input);
-        TaskList matchingTasks = tasks.findTasks(keyword);
-        ui.showMatchingTasks(matchingTasks);
     }
 
     /**

@@ -6,6 +6,8 @@ import robert.task.Todo;
 import robert.task.Deadline;
 import robert.task.Event;
 import java.io.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 /**
@@ -13,6 +15,7 @@ import java.util.ArrayList;
  */
 public class Storage {
     private final File file;
+    private static final DateTimeFormatter STORAGE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HHmm");
 
     /**
      * Constructs a Storage object for the given file path.
@@ -39,26 +42,40 @@ public class Storage {
                 String line;
                 while ((line = br.readLine()) != null) {
                     String[] parts = line.split(" \\| ");
+                    if (parts.length < 3) continue; // Skip malformed lines
+                    
                     String type = parts[0];
                     boolean isDone = parts[1].equals("1");
                     String description = parts[2];
                     Task task = null;
-                    switch (type) {
-                        case "T":
-                            task = new Todo(description);
-                            break;
-                        case "D":
-                            task = new Deadline(description, parts[3]);
-                            break;
-                        case "E":
-                            task = new Event(description, parts[3], parts[4]);
-                            break;
-                    }
-                    if (task != null) {
-                        if (isDone) {
-                            task.markAsDone();
+                    
+                    try {
+                        switch (type) {
+                            case "T":
+                                task = new Todo(description);
+                                break;
+                            case "D":
+                                if (parts.length >= 4) {
+                                    LocalDateTime by = LocalDateTime.parse(parts[3], STORAGE_FORMAT);
+                                    task = new Deadline(description, by);
+                                }
+                                break;
+                            case "E":
+                                if (parts.length >= 5) {
+                                    LocalDateTime from = LocalDateTime.parse(parts[3], STORAGE_FORMAT);
+                                    LocalDateTime to = LocalDateTime.parse(parts[4], STORAGE_FORMAT);
+                                    task = new Event(description, from, to);
+                                }
+                                break;
                         }
-                        tasks.add(task);
+                        if (task != null) {
+                            if (isDone) {
+                                task.markAsDone();
+                            }
+                            tasks.add(task);
+                        }
+                    } catch (Exception e) {
+                        System.out.println("Warning: Skipping corrupted task: " + line);
                     }
                 }
             } catch (Exception e) {
@@ -79,24 +96,24 @@ public class Storage {
             for (int i = 0; i < taskList.size(); i++) {
                 Task task = taskList.get(i);
                 StringBuilder sb = new StringBuilder();
+                
                 if (task instanceof Todo) {
                     sb.append("T | ");
                     sb.append(task.getStatusIcon().equals("X") ? "1" : "0").append(" | ");
-                    sb.append(task.toString().substring(7));
+                    sb.append(task.getDescription());
                 } else if (task instanceof Deadline) {
+                    Deadline deadline = (Deadline) task;
                     sb.append("D | ");
                     sb.append(task.getStatusIcon().equals("X") ? "1" : "0").append(" | ");
-                    String fullString = task.toString();
-                    String description = fullString.substring(7, fullString.indexOf(" (by: "));
-                    String deadline = fullString.substring(fullString.indexOf("(by: ") + 5, fullString.length() - 1);
-                    sb.append(description).append(" | ").append(deadline);
+                    sb.append(task.getDescription()).append(" | ");
+                    sb.append(deadline.getBy().format(STORAGE_FORMAT));
                 } else if (task instanceof Event) {
+                    Event event = (Event) task;
                     sb.append("E | ");
                     sb.append(task.getStatusIcon().equals("X") ? "1" : "0").append(" | ");
-                    String fullString = task.toString();
-                    String description = fullString.substring(7, fullString.indexOf(" (from: "));
-                    String[] eventParts = fullString.split(" \\(from: | to: |\\)");
-                    sb.append(description).append(" | ").append(eventParts[1]).append(" | ").append(eventParts[2]);
+                    sb.append(task.getDescription()).append(" | ");
+                    sb.append(event.getFrom().format(STORAGE_FORMAT)).append(" | ");
+                    sb.append(event.getTo().format(STORAGE_FORMAT));
                 }
                 bw.write(sb.toString());
                 bw.newLine();
