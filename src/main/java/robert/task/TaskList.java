@@ -40,6 +40,7 @@ public class TaskList {
      * @return The removed task.
      */
     public Task remove(int index) {
+        assert index >= 0 && index < tasks.size() : "Index out of bounds in remove";
         return tasks.remove(index);
     }
 
@@ -50,6 +51,7 @@ public class TaskList {
      * @return The task at the index.
      */
     public Task get(int index) {
+        assert index >= 0 && index < tasks.size() : "Index out of bounds in get";
         return tasks.get(index);
     }
 
@@ -68,6 +70,7 @@ public class TaskList {
      * @param index Index of the task.
      */
     public void markTask(int index) {
+        assert index >= 0 && index < tasks.size() : "Index out of bounds in markTask";
         tasks.get(index).markAsDone();
     }
 
@@ -77,6 +80,7 @@ public class TaskList {
      * @param index Index of the task.
      */
     public void unmarkTask(int index) {
+        assert index >= 0 && index < tasks.size() : "Index out of bounds in unmarkTask";
         tasks.get(index).markAsNotDone();
     }
 

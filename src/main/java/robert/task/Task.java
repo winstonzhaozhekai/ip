@@ -15,6 +15,7 @@ public class Task {
      * @param type Type of the task (TODO, DEADLINE, EVENT).
      */
     public Task(String description, TaskType type) {
+        assert description != null : "Task description should not be null";
         this.description = description;
         this.isDone = false;
         this.type = type;
