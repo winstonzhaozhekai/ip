@@ -24,22 +24,7 @@ public class Event extends Task {
     }
 
     /**
-     * Constructs an Event from a description and formatted date strings.
-     *
-     * @param description Description of the event.
-     * @param from Start date/time string in "MMM d yyyy, h:mm a" format.
-     * @param to End time string in "h:mm a" format.
-     */
-    public Event(String description, String from, String to) {
-        super(description, TaskType.EVENT);
-        this.from = LocalDateTime.parse(from, DateTimeFormatter.ofPattern("MMM d yyyy, h:mm a"));
-        this.to = LocalDateTime.parse(to, DateTimeFormatter.ofPattern("h:mm a"));
-        // Adjust the 'to' time to be on the same day as 'from'
-        this.to = this.from.withHour(this.to.getHour()).withMinute(this.to.getMinute());
-    }
-
-    /**
-     * Gets the start date and time.
+     * Returns the start date and time.
      *
      * @return The start LocalDateTime.
      */
@@ -48,7 +33,7 @@ public class Event extends Task {
     }
 
     /**
-     * Gets the end date and time.
+     * Returns the end date and time.
      *
      * @return The end LocalDateTime.
      */
@@ -63,7 +48,8 @@ public class Event extends Task {
      */
     @Override
     public String toString() {
-        return "[E]" + super.toString() + " (from: " + from.format(DateTimeFormatter.ofPattern("MMM d yyyy, h:mm a")) +
-                " to: " + to.format(DateTimeFormatter.ofPattern("h:mm a")) + ")";
+        return "[E]" + super.toString()
+                + " (from: " + from.format(DateTimeFormatter.ofPattern("MMM d yyyy, h:mm a"))
+                + " to: " + to.format(DateTimeFormatter.ofPattern("h:mm a")) + ")";
     }
 }
