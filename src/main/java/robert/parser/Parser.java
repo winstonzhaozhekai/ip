@@ -35,6 +35,7 @@ public class Parser {
      */
     public static int parseTaskIndex(String input) throws RobertException {
         String[] parts = input.trim().split("\\s+");
+        assert parts.length > 0 : "Input should not be empty";
         if (parts.length != 2) {
             throw new RobertException("Please provide a valid task number.");
         }
@@ -55,6 +56,7 @@ public class Parser {
      */
     public static Todo parseTodo(String input) throws RobertException {
         String trimmed = input.trim();
+        assert trimmed.startsWith("todo") : "Input should start with 'todo'";
         if (trimmed.length() <= 4 || !trimmed.startsWith("todo")) {
             throw new RobertException("The description of a todo cannot be empty.");
         }
@@ -73,6 +75,7 @@ public class Parser {
      * @throws RobertException If the input format or date/time is invalid.
      */
     public static Deadline parseDeadline(String input) throws RobertException {
+        assert input.startsWith("deadline") : "Input should start with 'deadline'";
         String[] parts = input.substring(9).split(" /by ", 2);
         if (parts.length < 2 || parts[0].trim().isEmpty() || parts[1].trim().isEmpty()) {
             throw new RobertException("Please provide a valid description and deadline, e.g., 'deadline return book /by 2019-12-02 1800'.");
@@ -94,6 +97,7 @@ public class Parser {
      * @throws RobertException If the input format or date/time is invalid.
      */
     public static Event parseEvent(String input) throws RobertException {
+        assert input.startsWith("event") : "Input should start with 'event'";
         String[] parts = input.substring(6).split(" /from ", 2);
         if (parts.length < 2 || parts[0].trim().isEmpty()) {
             throw new RobertException("Please provide a valid description and event time, e.g., 'event project meeting /from 2019-12-02 1400 /to 1600'.");
@@ -129,6 +133,7 @@ public class Parser {
      * @throws RobertException If the keyword is empty.
      */
     public static String parseFind(String input) throws RobertException {
+        assert input.startsWith("find") : "Input should start with 'find'";
         String trimmed = input.trim();
         if (trimmed.length() <= 4 || !trimmed.startsWith("find")) {
             throw new RobertException("Please provide a keyword to search for.");

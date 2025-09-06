@@ -35,6 +35,7 @@ public class Storage {
     public ArrayList<Task> load() throws IOException {
         ArrayList<Task> tasks = new ArrayList<>();
         if (!file.exists()) {
+            assert file.getParentFile() != null : "Parent directory should not be null";
             file.getParentFile().mkdirs(); // Create directories if they don't exist
             file.createNewFile(); // Create the file if it doesn't exist
         } else {
@@ -43,6 +44,10 @@ public class Storage {
                 while ((line = br.readLine()) != null) {
                     String[] parts = line.split(" \\| ");
                     if (parts.length < 3) continue; // Skip malformed lines
+
+                    assert parts[0] != null : "Task type should not be null";
+                    assert parts[1] != null : "Task status should not be null";
+                    assert parts[2] != null : "Task description should not be null";
                     
                     String type = parts[0];
                     boolean isDone = parts[1].equals("1");
