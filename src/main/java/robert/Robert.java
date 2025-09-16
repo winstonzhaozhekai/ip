@@ -9,6 +9,7 @@ import robert.task.Event;
 import robert.ui.Ui;
 import robert.parser.Parser;
 import robert.exception.RobertException;
+import robert.exception.DuplicateTaskException;
 import java.io.IOException;
 
 /**
@@ -65,6 +66,8 @@ public class Robert {
             } else {
                 return "Only 'list', 'mark <num>', 'unmark <num>', 'todo <desc>', 'deadline <desc> /by <time>', 'event <desc> /from <start> /to <end>', 'delete <num>', 'find <keyword>', and 'bye' commands are supported.";
             }
+        } catch (DuplicateTaskException e) {
+            return "This task already exists in your list:\n  " + e.getMessage();
         } catch (RobertException | IOException e) {
             return e.getMessage();
         }
@@ -127,6 +130,13 @@ public class Robert {
      */
     private String handleTodo(String input) throws RobertException, IOException {
         Todo todo = Parser.parseTodo(input);
+        
+        // Check for duplicates
+        if (tasks.isDuplicate(todo)) {
+            Task existingTask = tasks.findDuplicate(todo);
+            throw new DuplicateTaskException(existingTask.toString());
+        }
+        
         tasks.add(todo);
         storage.save(tasks);
         return "Got it. I've added this task:\n  " + todo + "\nNow you have " + tasks.size() + " task(s) in the list.";
@@ -142,6 +152,13 @@ public class Robert {
      */
     private String handleDeadline(String input) throws RobertException, IOException {
         Deadline deadline = Parser.parseDeadline(input);
+        
+        // Check for duplicates
+        if (tasks.isDuplicate(deadline)) {
+            Task existingTask = tasks.findDuplicate(deadline);
+            throw new DuplicateTaskException(existingTask.toString());
+        }
+        
         tasks.add(deadline);
         storage.save(tasks);
         return "Got it. I've added this task:\n  " + deadline + "\nNow you have " + tasks.size() + " task(s) in the list.";
@@ -157,6 +174,13 @@ public class Robert {
      */
     private String handleEvent(String input) throws RobertException, IOException {
         Event event = Parser.parseEvent(input);
+        
+        // Check for duplicates
+        if (tasks.isDuplicate(event)) {
+            Task existingTask = tasks.findDuplicate(event);
+            throw new DuplicateTaskException(existingTask.toString());
+        }
+        
         tasks.add(event);
         storage.save(tasks);
         return "Got it. I've added this task:\n  " + event + "\nNow you have " + tasks.size() + " task(s) in the list.";
@@ -239,16 +263,28 @@ public class Robert {
                     ui.showTaskUnmarked(tasks.get(index));
                 } else if (command.equals("todo")) {
                     Todo todo = Parser.parseTodo(input);
+                    if (tasks.isDuplicate(todo)) {
+                        Task existingTask = tasks.findDuplicate(todo);
+                        throw new DuplicateTaskException("This task already exists in your list: " + existingTask.toString());
+                    }
                     tasks.add(todo);
                     storage.save(tasks);
                     ui.showTaskAdded(todo, tasks.size());
                 } else if (command.equals("deadline")) {
                     Deadline deadline = Parser.parseDeadline(input);
+                    if (tasks.isDuplicate(deadline)) {
+                        Task existingTask = tasks.findDuplicate(deadline);
+                        throw new DuplicateTaskException("This task already exists in your list: " + existingTask.toString());
+                    }
                     tasks.add(deadline);
                     storage.save(tasks);
                     ui.showTaskAdded(deadline, tasks.size());
                 } else if (command.equals("event")) {
                     Event event = Parser.parseEvent(input);
+                    if (tasks.isDuplicate(event)) {
+                        Task existingTask = tasks.findDuplicate(event);
+                        throw new DuplicateTaskException("This task already exists in your list: " + existingTask.toString());
+                    }
                     tasks.add(event);
                     storage.save(tasks);
                     ui.showTaskAdded(event, tasks.size());
@@ -267,6 +303,8 @@ public class Robert {
                 } else {
                     throw new RobertException("Only 'list', 'mark <num>', 'unmark <num>', 'todo <desc>', 'deadline <desc> /by <time>', 'event <desc> /from <start> /to <end>', 'delete <num>', 'find <keyword>', and 'bye' commands are supported.");
                 }
+            } catch (DuplicateTaskException e) {
+                ui.showError(e.getMessage());
             } catch (RobertException | IOException e) {
                 ui.showError(e.getMessage());
             } finally {

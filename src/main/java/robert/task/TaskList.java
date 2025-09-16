@@ -34,6 +34,75 @@ public class TaskList {
     }
 
     /**
+     * Checks if a task already exists in the list.
+     * Two tasks are considered duplicates if they have the same type and description.
+     * For Deadline and Event tasks, they must also have the same date/time.
+     *
+     * @param task Task to check for duplicates.
+     * @return true if a duplicate exists, false otherwise.
+     */
+    public boolean isDuplicate(Task task) {
+        for (Task existingTask : tasks) {
+            if (areTasksEqual(existingTask, task)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Finds and returns the existing duplicate task if it exists.
+     *
+     * @param task Task to check for duplicates.
+     * @return The existing duplicate task, or null if no duplicate exists.
+     */
+    public Task findDuplicate(Task task) {
+        for (Task existingTask : tasks) {
+            if (areTasksEqual(existingTask, task)) {
+                return existingTask;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Checks if two tasks are equal based on their type, description, and date/time (if applicable).
+     *
+     * @param task1 First task to compare.
+     * @param task2 Second task to compare.
+     * @return true if tasks are equal, false otherwise.
+     */
+    private boolean areTasksEqual(Task task1, Task task2) {
+        // Check if types are different
+        if (task1.getType() != task2.getType()) {
+            return false;
+        }
+
+        // Check if descriptions are different (case-insensitive)
+        if (!task1.getDescription().equalsIgnoreCase(task2.getDescription())) {
+            return false;
+        }
+
+        // For Deadline tasks, also compare the deadline
+        if (task1 instanceof Deadline && task2 instanceof Deadline) {
+            Deadline deadline1 = (Deadline) task1;
+            Deadline deadline2 = (Deadline) task2;
+            return deadline1.getBy().equals(deadline2.getBy());
+        }
+
+        // For Event tasks, also compare start and end times
+        if (task1 instanceof Event && task2 instanceof Event) {
+            Event event1 = (Event) task1;
+            Event event2 = (Event) task2;
+            return event1.getFrom().equals(event2.getFrom()) && 
+                   event1.getTo().equals(event2.getTo());
+        }
+
+        // For Todo tasks, only description matters (already checked above)
+        return true;
+    }
+
+    /**
      * Removes and returns the task at the specified index.
      *
      * @param index Index of the task to remove.
