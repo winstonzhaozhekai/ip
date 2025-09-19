@@ -3,3 +3,4 @@ T | 0 | cut hair
 E | 0 | CCA Meeting | 2025-09-09 1800 | 2025-09-09 2200
 D | 0 | Coding Assignment | 2025-09-16 2359
 E | 1 | Training | 2025-09-11 1800 | 2025-09-11 2200
+T | 0 | 2103T ip
